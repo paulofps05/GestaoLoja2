@@ -4,6 +4,10 @@
 @inject IDbContextFactory<GestaoLoja2.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
 <PageTitle>Details</PageTitle>
 
 <h1>Details</h1>
