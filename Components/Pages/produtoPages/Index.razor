@@ -1,0 +1,60 @@
+﻿@page "/produtos"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using GestaoLoja2.Entitles
+@using GestaoLoja2.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<GestaoLoja2.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="produtos/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="Produtos">
+    <PropertyColumn Property="produto => produto.Nome" />
+    <PropertyColumn Property="produto => produto.Preco" />
+    <PropertyColumn Property="produto => produto.Promocao" />
+    <PropertyColumn Property="produto => produto.MaisVendido" />
+    <PropertyColumn Property="produto => produto.EmStock" />
+    <PropertyColumn Property="produto => produto.Disponivel" />
+    <PropertyColumn Property="produto => produto.categoria.Nome" Title="Categoria"/>
+    <PropertyColumn Property="produto => produto.ModoEntrega.Nome" Title="Modo de Entrega"/>
+
+
+    <TemplateColumn Context="produto" Title="Imagem">
+        @if (!string.IsNullOrEmpty(produto.UrlImagem))
+        {
+            <img src="@produto.UrlImagem" alt="@produto.Nome
+                                " style="max-width: 100px; max-height: 100px" />
+        }
+        else
+        {
+            <a>Sem imagem...</a>
+        }
+    </TemplateColumn>
+
+    <TemplateColumn Context="produto">
+        <a href="@($"produtos/edit?id={produto.Id}")">Edit</a> |
+        <a href="@($"produtos/details?id={produto.Id}")">Details</a> |
+        <a href="@($"produtos/delete?id={produto.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    IQueryable<produto> Produtos = default!;
+
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        Produtos = context.Produtos.Include(p => p.categoria).Include(p => p.ModoEntrega).ToList().AsQueryable();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

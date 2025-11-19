@@ -1,0 +1,129 @@
+﻿@page "/categoria/edit"
+@using Microsoft.EntityFrameworkCore
+@using GestaoLoja2.Entitles
+@inject IDbContextFactory<GestaoLoja2.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>categoria</h2>
+<hr />
+@if (Categoria is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Categoria" OnValidSubmit="UpdateCategoria" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="categoria.Id" value="@Categoria.Id" />
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome:</label>
+                    <InputText id="nome" @bind-Value="Categoria.Nome" class="form-control" />
+                    <ValidationMessage For="() => Categoria.Nome" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="ordem" class="form-label">Ordem:</label>
+                    <InputNumber id="ordem" @bind-Value="Categoria.Ordem" class="form-control" />
+                    <ValidationMessage For="() => Categoria.Ordem" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="urlimagem" class="form-label">UrlImagem:</label>
+                    <InputText id="urlimagem" @bind-Value="Categoria.UrlImagem" class="form-control" />
+                    <ValidationMessage For="() => Categoria.UrlImagem" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="imagem" class="form-label">Imagem:</label>
+                    <InputFile id="imagem" OnChange="OnImageChange" class="form-control" accept=".png,.jpg,.jpeg" />
+                    @if (Categoria.Imagem is not null && Categoria.Imagem.Length > 4)
+                    {
+                        <img src="@($"data:image/png;base64,{Convert.ToBase64String(Categoria.Imagem)}")" alt="@Categoria.Nome" style="max-width: 100px; max-height: 100px" />
+                    }
+                    else
+                    {
+                        <a>"Sem imagem...</a>
+                    }
+                    <ValidationMessage For="() => Categoria.Imagem" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/categoria">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private categoria? Categoria { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Categoria ??= await context.Categorias.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Categoria is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateCategoria()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Categoria!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!CategoriaExists(Categoria!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/categoria");
+    }
+
+    private bool CategoriaExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Categorias.Any(e => e.Id == id);
+    }
+
+
+    private string? previewUrl;
+    private async Task OnImageChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        using var stream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(stream);
+        Categoria.Imagem = stream.ToArray(); // só guarda os bytes
+
+        // Cria pré-visualização
+        using var previewStream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(previewStream);
+        var base64 = Convert.ToBase64String(previewStream.ToArray());
+        previewUrl = $"data:{file.ContentType};base64,{base64}";
+    }
+}

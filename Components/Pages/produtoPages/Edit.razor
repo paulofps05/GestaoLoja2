@@ -1,0 +1,188 @@
+﻿@page "/produtos/edit"
+@using Microsoft.EntityFrameworkCore
+@using GestaoLoja2.Entitles
+@inject IDbContextFactory<GestaoLoja2.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>produto</h2>
+<hr />
+@if (produto is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="produto" OnValidSubmit="Updateproduto" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="produto.Id" value="@produto.Id" />
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome:</label>
+                    <InputText id="nome" @bind-Value="produto.Nome" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => produto.Nome" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="detalhe" class="form-label">Detalhe:</label>
+                    <InputText id="detalhe" @bind-Value="produto.Detalhe" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => produto.Detalhe" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="urlimagem" class="form-label">UrlImagem:</label>
+                    <InputText id="urlimagem" @bind-Value="produto.UrlImagem" class="form-control" />
+                    <ValidationMessage For="() => produto.UrlImagem" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="imagem" class="form-label">Imagem:</label>
+                    <InputFile id="imagem" OnChange="OnImageChange" class="form-control" accept=".png,.jpg,.jpeg" />
+                    @if (!string.IsNullOrEmpty(produto.UrlImagem))
+                    {
+                        <img src="@produto.UrlImagem" alt="@produto.Nome
+                            " style="max-width: 100px; max-height: 100px" />
+                    }
+                    else
+                    {
+                        <a>Sem imagem...</a>
+                    }
+                    <ValidationMessage For="() => produto.Imagem" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="preco" class="form-label">Preco:</label>
+                    <InputNumber id="preco" @bind-Value="produto.Preco" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => produto.Preco" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="promocao" class="form-label">Promocao:</label>
+                    <InputCheckbox id="promocao" @bind-Value="produto.Promocao" class="form-check-input" />
+                    <ValidationMessage For="() => produto.Promocao" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="maisvendido" class="form-label">MaisVendido:</label>
+                    <InputCheckbox id="maisvendido" @bind-Value="produto.MaisVendido" class="form-check-input" />
+                    <ValidationMessage For="() => produto.MaisVendido" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="emstock" class="form-label">EmStock:</label>
+                    <InputNumber id="emstock" @bind-Value="produto.EmStock" class="form-control" />
+                    <ValidationMessage For="() => produto.EmStock" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="disponivel" class="form-label">Disponivel:</label>
+                    <InputCheckbox id="disponivel" @bind-Value="produto.Disponivel" class="form-check-input" />
+                    <ValidationMessage For="() => produto.Disponivel" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="origem" class="form-label">Origem:</label>
+                    <InputText id="origem" @bind-Value="produto.Origem" class="form-control" />
+                    <ValidationMessage For="() => produto.Origem" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="categoriaid" class="form-label">Categoria:</label>
+                    <InputSelect id="categoriaid" class="form-select" @bind-Value="produto.CategoriaId">
+                        <option value="-1">-- Select Categoria --</option>
+                        @foreach (var categoria in selCategorias)
+                        {
+                            <option value="@categoria.Id">@categoria.Nome</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => produto.CategoriaId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="modoentregaid" class="form-label">Modo de Entrega:</label>
+                    <InputSelect id="modoentregaid" class="form-select" @bind-Value="produto.ModoEntregaId">
+                        <option value="-1">-- Select Modo Entrega --</option>
+                        @foreach (var modoEntrega in selModosEntrega)
+                        {
+                            <option value="@modoEntrega.Id">@modoEntrega.Nome</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => produto.ModoEntregaId" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/produtos">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private produto? produto { get; set; }
+
+    // criar variaveis auxiliares para a lista de categorias e lista de modos de
+    List<categoria> selCategorias = new();
+    List<ModoEntrega> selModosEntrega = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        produto ??= await context.Produtos.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (produto is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    
+        selCategorias = await context.Categorias.OrderBy(c => c.Ordem).ToListAsync();
+        selModosEntrega = await context.ModosEntrega.ToListAsync();
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task Updateproduto()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(produto!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!produtoExists(produto!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/produtos");
+    }
+
+    private bool produtoExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Produtos.Any(e => e.Id == id);
+    }
+
+    private string? previewUrl;
+    private async Task OnImageChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        using var stream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(stream);
+        produto.Imagem = stream.ToArray(); //só gyarda os bytes
+
+        //Cria pré-visualização
+        using var previewStream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(previewStream);
+        var base64 = Convert.ToBase64String(previewStream.ToArray());
+        previewUrl = $"data:{file.ContentType};base64,{base64}";
+    }
+}

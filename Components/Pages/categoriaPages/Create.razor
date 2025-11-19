@@ -1,0 +1,82 @@
+﻿@page "/categoria/create"
+@using Microsoft.EntityFrameworkCore
+@using GestaoLoja2.Entitles
+@inject IDbContextFactory<GestaoLoja2.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>categoria</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="categoria" OnValidSubmit="Addcategoria" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome:</label> 
+                <InputText id="nome" @bind-Value="categoria.Nome" class="form-control" /> 
+                <ValidationMessage For="() => categoria.Nome" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="ordem" class="form-label">Ordem:</label> 
+                <InputNumber id="ordem" @bind-Value="categoria.Ordem" class="form-control" /> 
+                <ValidationMessage For="() => categoria.Ordem" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="urlimagem" class="form-label">UrlImagem:</label> 
+                <InputText id="urlimagem" @bind-Value="categoria.UrlImagem" class="form-control" /> 
+                <ValidationMessage For="() => categoria.UrlImagem" class="text-danger" /> 
+            </div>
+            <div class="mb-3">
+                <label for="imagem" class="form-label">Imagem:</label>
+                <InputFile id="imagem" OnChange="OnImageChange" class="form-control"
+                           accept=".png,.jpg,.jpeg" />
+                @if (previewUrl is not null)
+                {
+                    <img src="@previewUrl" style="max-width: 150px; max-height:150px; margin-top: 10px;" />
+                }
+                <ValidationMessage For="() => categoria.Imagem" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/categoria">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private categoria categoria { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task Addcategoria()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Categorias.Add(categoria);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/categoria");
+    }
+
+    private string? previewUrl;
+    private async Task OnImageChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        using var stream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(stream);
+        categoria.Imagem = stream.ToArray(); // só guarda os bytes
+
+        // Cria pré-visualização
+        // para discutir a melhor forma de fazer isto
+        using var previewStream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(previewStream);
+        var base64 = Convert.ToBase64String(previewStream.ToArray());
+        previewUrl = $"data:{file.ContentType};base64,{base64}";
+    }
+
+}
