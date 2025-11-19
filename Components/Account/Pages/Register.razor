@@ -82,6 +82,21 @@
 
         Logger.LogInformation("User created a new account with password.");
 
+		// todos os novos utlizadores da aplicação vao
+        // ter a role "Cliente" atribuida
+		var add2Role = await UserManager.AddToRoleAsync(user, "Cliente");
+
+        if(add2Role.Succeeded)
+        {
+            Logger.LogInformation("New user assigned to role 'Cliente'.");
+        }
+        else
+        {
+            Logger.LogWarning("Failed to assign new user to role 'Cliente': {Errors}", string.Join(", ", add2Role.Errors.Select(e => e.Description)));
+		}
+        
+
+
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
