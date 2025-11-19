@@ -1,0 +1,1 @@
+# GestaoLoja2
