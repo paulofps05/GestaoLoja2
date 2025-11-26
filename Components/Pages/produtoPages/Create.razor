@@ -78,7 +78,7 @@
             <div class="mb-3">
                 <label for="modoentregaid" class="form-label">Modo de Entrega:</label> 
                 <InputSelect id="modoentregaid" class="form-select" @bind-Value="produto.ModoEntregaId">
-                    <option value="-1">-- Select Modo Entrega --</option>
+                    <option value="-1">  --</option>
                     @foreach (var modoEntrega in selModosEntrega)
                     {
                         <option value="@modoEntrega.Id">@modoEntrega.Nome</option>

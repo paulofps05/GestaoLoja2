@@ -1,0 +1,201 @@
+﻿@page "/admin/roles"
+
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@using GestaoLoja2.Data
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Forms
+
+
+<h3>Gestão de Roles</h3>
+
+<div class="table-responsive">
+    <table class="table table-hover table-striped align-middle border">
+        <thead class="table-light">
+            <tr>
+                <th>Nome da Role</th>
+                <th class="text-end" style="width: 250px;">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (roles != null && roles.Any())
+            {
+                @foreach (var role in roles)
+                {
+                    <tr>
+                        @if (editingRoleId == role.Id)
+                        {
+                            <td>
+                                <input type="text" class="form-control" @bind="editingRoleName" />
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-success btn-sm me-2" @onclick="AtualizarRole">
+                                    <i class="bi bi-check-lg"></i> Guardar
+                                </button>
+                                <button class="btn btn-secondary btn-sm" @onclick="CancelarEdicao">
+                                    <i class="bi bi-x-lg"></i> Cancelar
+                                </button>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <span class="fw-bold">@role.Name</span>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-outline-primary btn-sm me-2" @onclick="() => IniciarEdicao(role)">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </button>
+
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => ApagarRole(role.Id)">
+                                    <i class="bi bi-trash3"></i> Apagar
+                                </button>
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="2" class="text-center text-muted py-3">
+                        <em>Não existem roles configuradas.</em>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+    <div class="alert alert-info mt-3">@mensagem</div>
+}
+
+<div class="card mt-4">
+    <div class="card-header fw-bold">Nova Role</div>
+    <div class="card-body">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="nomeDaRole"
+                   @bind="newRole"
+                   placeholder="Escreva o nome da nova Role">
+            <button class="btn btn-info" @onclick="CriarRole">Criar</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Variáveis para criação
+    string newRole = string.Empty;
+    string mensagem = string.Empty;
+
+    // Variáveis para edição
+    string? editingRoleId = null;
+    string editingRoleName = string.Empty;
+
+    List<IdentityRole>? roles;
+
+    protected override void OnInitialized()
+    {
+        CarregarRoles();
+    }
+
+    private void CarregarRoles()
+    {
+        roles = RoleManager.Roles.ToList();
+    }
+
+    // --- LÓGICA DE CRIAÇÃO ---
+    protected async Task CriarRole()
+    {
+        mensagem = string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(newRole))
+        {
+            if (!await RoleManager.RoleExistsAsync(newRole))
+            {
+                var role = new IdentityRole(newRole);
+                var result = await RoleManager.CreateAsync(role);
+
+                if (result.Succeeded)
+                {
+                    CarregarRoles();
+                    mensagem = "Role criada com sucesso!";
+                    newRole = string.Empty;
+                }
+                else
+                {
+                    mensagem = "Erro ao criar role: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                }
+            }
+            else
+            {
+                mensagem = "Essa Role já existe.";
+            }
+        }
+        else
+        {
+            mensagem = "Por favor preencha o nome da role.";
+        }
+    }
+
+    // --- LÓGICA DE EDIÇÃO ---
+    private void IniciarEdicao(IdentityRole role)
+    {
+        editingRoleId = role.Id;
+        editingRoleName = role.Name ?? string.Empty;
+        mensagem = string.Empty; // Limpa mensagens antigas
+    }
+
+    private void CancelarEdicao()
+    {
+        editingRoleId = null;
+        editingRoleName = string.Empty;
+    }
+
+    private async Task AtualizarRole()
+    {
+        if (string.IsNullOrWhiteSpace(editingRoleName))
+        {
+            mensagem = "O nome da role não pode estar vazio.";
+            return;
+        }
+
+        var role = await RoleManager.FindByIdAsync(editingRoleId);
+        if (role != null)
+        {
+            role.Name = editingRoleName;
+            var result = await RoleManager.UpdateAsync(role);
+
+            if (result.Succeeded)
+            {
+                mensagem = "Role atualizada com sucesso.";
+                editingRoleId = null; // Sai do modo de edição
+                CarregarRoles(); // Atualiza a lista
+            }
+            else
+            {
+                mensagem = "Erro ao atualizar: " + string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+        }
+    }
+
+    // --- LÓGICA DE ELIMINAÇÃO ---
+    private async Task ApagarRole(string id)
+    {
+        var role = await RoleManager.FindByIdAsync(id);
+        if (role != null)
+        {
+            var result = await RoleManager.DeleteAsync(role);
+            if (result.Succeeded)
+            {
+                mensagem = "Role apagada com sucesso.";
+                CarregarRoles();
+            }
+            else
+            {
+                mensagem = "Erro ao apagar: " + string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+        }
+    }
+}

@@ -1,0 +1,220 @@
+﻿@page "/admin/users"
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Forms
+@using GestaoLoja2.Data
+
+@inject UserManager<ApplicationUser> UserManager
+
+<h3>Gestão de Utilizadores</h3>
+
+<div class="table-responsive">
+    <table class="table table-hover table-striped align-middle border">
+        <thead class="table-light">
+            <tr>
+                <th>Email (Username)</th>
+                <th>Nome</th>
+                <th>Apelido</th>
+                <th>Roles</th>
+                <th>NIF</th>
+                <th class="text-end" style="width: 180px;">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (usersList != null && usersList.Any())
+            {
+                @foreach (var item in usersList)
+                {
+                    <tr>
+                        @if (editingUserId == item.User.Id)
+                        {
+                            /* --- MODO DE EDIÇÃO --- */
+                            <td>
+                                <input type="email" class="form-control form-control-sm" @bind="editingUserEmail" />
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" @bind="editingUserNome" />
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" @bind="editingUserApelido" />
+                            </td>
+                            <td>
+                                <span class="text-muted small">Edição indisponível</span>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" @bind="editingUserNIF" />
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-success btn-sm me-1" @onclick="AtualizarUser" title="Guardar">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn btn-secondary btn-sm" @onclick="CancelarEdicao" title="Cancelar">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </td>
+                        }
+                        else
+                        {
+                            /* --- MODO DE VISUALIZAÇÃO --- */
+                            <td>
+                                <span class="fw-bold text-primary">@item.User.Email</span>
+                            </td>
+                            <td>
+                                <span>@item.User.Nome</span>
+                            </td>
+                            <td>
+                                <span>@item.User.Apelido</span>
+                            </td>
+                            <td>
+                                @if (item.Roles != null && item.Roles.Any())
+                                {
+                                    @foreach (var role in item.Roles)
+                                    {
+                                        <span class="badge bg-secondary me-1">@role</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Sem roles</span>
+                                }
+                            </td>
+                            <td>
+                                <code>@item.User.NIF</code>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => IniciarEdicao(item.User)" title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => ApagarUser(item.User.Id)" title="Apagar">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-3"><em>Não existem utilizadores registados.</em></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+    <div class="alert alert-info mt-3 alert-dismissible fade show">
+        @mensagem
+        <button type="button" class="btn-close" @onclick="() => mensagem = string.Empty"></button>
+    </div>
+}
+
+@code {
+    string mensagem = string.Empty;
+
+    // --- VARIÁVEIS EDIÇÃO ---
+    string? editingUserId = null;
+    string editingUserEmail = "";
+    string editingUserNome = "";
+    string editingUserApelido = "";
+    string editingUserNIF = "";
+
+    // Classe auxiliar para guardar o User e a lista das suas Roles
+    public class UserWithRoles
+    {
+        public ApplicationUser User { get; set; }
+        public IList<string> Roles { get; set; }
+    }
+
+    List<UserWithRoles>? usersList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarUsers();
+    }
+
+    private async Task CarregarUsers()
+    {
+        usersList = new List<UserWithRoles>();
+
+        // 1. Buscar todos os utilizadores
+        var allUsers = UserManager.Users.ToList();
+
+        // 2. Para cada utilizador, buscar as roles
+        foreach (var user in allUsers)
+        {
+            var roles = await UserManager.GetRolesAsync(user);
+            usersList.Add(new UserWithRoles { User = user, Roles = roles });
+        }
+    }
+
+    // --- LÓGICA DE EDIÇÃO ---
+    private void IniciarEdicao(ApplicationUser user)
+    {
+        editingUserId = user.Id;
+        editingUserEmail = user.Email ?? "";
+        editingUserNome = user.Nome ?? "";
+        editingUserApelido = user.Apelido ?? "";
+        editingUserNIF = user.NIF.ToString() ?? "";
+        mensagem = "";
+    }
+
+    private void CancelarEdicao()
+    {
+        editingUserId = null;
+    }
+
+    private async Task AtualizarUser()
+    {
+        if (string.IsNullOrWhiteSpace(editingUserId)) return;
+
+        var user = await UserManager.FindByIdAsync(editingUserId);
+        if (user != null)
+        {
+            if (!string.IsNullOrWhiteSpace(editingUserEmail))
+            {
+                user.Email = editingUserEmail;
+                user.UserName = editingUserEmail;
+            }
+
+            user.Nome = editingUserNome;
+            user.Apelido = editingUserApelido;
+
+            if (int.TryParse(editingUserNIF, out int nifValue)) user.NIF = nifValue;
+
+            var result = await UserManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                mensagem = "Utilizador atualizado.";
+                editingUserId = null;
+                await CarregarUsers(); // Recarrega a lista para garantir dados frescos
+            }
+            else
+            {
+                mensagem = "Erro: " + string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+        }
+    }
+
+    // --- LÓGICA DE ELIMINAÇÃO ---
+    private async Task ApagarUser(string id)
+    {
+        var user = await UserManager.FindByIdAsync(id);
+        if (user != null)
+        {
+            var result = await UserManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                mensagem = "Utilizador eliminado.";
+                await CarregarUsers();
+            }
+            else
+            {
+                mensagem = "Erro ao apagar.";
+            }
+        }
+    }
+}

@@ -14,26 +14,20 @@
 
 <h1>Index</h1>
 
-<p>
-    <a href="produtos/create">Create New</a>
-</p>
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <p>
+            <a href="produtos/create">Create New</a>
+        </p>
+    </Authorized>
+</AuthorizeView>
 
 <QuickGrid Class="table" Items="Produtos">
-    <PropertyColumn Property="produto => produto.Nome" />
-    <PropertyColumn Property="produto => produto.Preco" />
-    <PropertyColumn Property="produto => produto.Promocao" />
-    <PropertyColumn Property="produto => produto.MaisVendido" />
-    <PropertyColumn Property="produto => produto.EmStock" />
-    <PropertyColumn Property="produto => produto.Disponivel" />
-    <PropertyColumn Property="produto => produto.categoria.Nome" Title="Categoria"/>
-    <PropertyColumn Property="produto => produto.ModoEntrega.Nome" Title="Modo de Entrega"/>
-
-
     <TemplateColumn Context="produto" Title="Imagem">
         @if (!string.IsNullOrEmpty(produto.UrlImagem))
         {
             <img src="@produto.UrlImagem" alt="@produto.Nome
-                                " style="max-width: 100px; max-height: 100px" />
+                                    " style="max-width: 100px; max-height: 100px" />
         }
         else
         {
@@ -41,11 +35,30 @@
         }
     </TemplateColumn>
 
-    <TemplateColumn Context="produto">
-        <a href="@($"produtos/edit?id={produto.Id}")">Edit</a> |
-        <a href="@($"produtos/details?id={produto.Id}")">Details</a> |
-        <a href="@($"produtos/delete?id={produto.Id}")">Delete</a>
-    </TemplateColumn>
+    <PropertyColumn Property="produto => produto.Nome" />
+    <PropertyColumn Property="produto => produto.Preco" />
+@*     <PropertyColumn Property="produto => produto.Promocao" />
+    <PropertyColumn Property="produto => produto.MaisVendido" />
+    <PropertyColumn Property="produto => produto.EmStock" />*@
+    <PropertyColumn Property="produto => produto.Disponivel" /> 
+    <PropertyColumn Property="produto => produto.categoria.Nome" Title="Categoria"/>
+@*     <PropertyColumn Property="produto => produto.ModoEntrega.Nome" Title="Modo de Entrega"/> *@
+    
+    <AuthorizeView Roles="Admin">
+        <Authorized>
+            <TemplateColumn Context="produto">
+                <a href="@($"produtos/edit?id={produto.Id}")">Edit</a> |
+                <a href="@($"produtos/details?id={produto.Id}")">Details</a> |
+                <a href="@($"produtos/delete?id={produto.Id}")">Delete</a>
+            </TemplateColumn>
+        </Authorized>
+        <NotAuthorized>
+            <TemplateColumn Context="produto">
+                <a href="@($"produtos/details?id={produto.Id}")">Details</a>
+			</TemplateColumn>
+        </NotAuthorized>
+    </AuthorizeView>
+
 </QuickGrid>
 
 @code {

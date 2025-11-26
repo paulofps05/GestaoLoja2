@@ -16,14 +16,17 @@
 
 <h1>Index</h1>
 
-<p>
-    <a href="categoria/create">Create New</a>
-</p>
+<AuthorizeView Roles="Admin">
+    <Authorized>
+		<p>
+			<a href="categoria/create">Create New</a>
+		</p>
+    </Authorized>
+</AuthorizeView>
+
 
 <QuickGrid Class="table" Items="context.Categorias">
-    <PropertyColumn Property="categoria => categoria.Nome" />
-    <PropertyColumn Property="categoria => categoria.Ordem" />
-    <PropertyColumn Property="categoria => categoria.UrlImagem" />
+    @* <PropertyColumn Property="categoria => categoria.UrlImagem" /> *@
 	@*<PropertyColumn Property="categoria => categoria.Imagem" />*@
 
     <TemplateColumn Context="categoria">
@@ -35,6 +38,9 @@
             <a>Sem imagem...</a>
         }
     </TemplateColumn>
+
+    <PropertyColumn Property="categoria => categoria.Nome" />
+    @* <PropertyColumn Property="categoria => categoria.Ordem" /> *@
 
     <TemplateColumn Context="categoria">
         <a href="@($"categoria/edit?id={categoria.Id}")">Edit</a> |
