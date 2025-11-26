@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestaoLoja2", "GestaoLoja2.csproj", "{B630B1A3-6B43-4BA6-93F8-656E69C966A4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RESTfulAPIPWeb", "..\RESTfulAPIPWeb\RESTfulAPIPWeb.csproj", "{4579FC7D-DD34-F805-940A-24E7F0D85D3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{B630B1A3-6B43-4BA6-93F8-656E69C966A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B630B1A3-6B43-4BA6-93F8-656E69C966A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B630B1A3-6B43-4BA6-93F8-656E69C966A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4579FC7D-DD34-F805-940A-24E7F0D85D3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4579FC7D-DD34-F805-940A-24E7F0D85D3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4579FC7D-DD34-F805-940A-24E7F0D85D3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4579FC7D-DD34-F805-940A-24E7F0D85D3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
