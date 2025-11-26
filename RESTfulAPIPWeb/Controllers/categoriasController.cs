@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTfulAPIPWeb.Data;
 using RESTfulAPIPWeb.Entities;
+using RESTfulAPIPWeb.Repositories;
 
 namespace RESTfulAPIPWeb.Controllers
 {
@@ -15,13 +16,24 @@ namespace RESTfulAPIPWeb.Controllers
     public class categoriasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICategoriaRepository _categoriaRepository;
 
-        public categoriasController(ApplicationDbContext context)
+        public categoriasController(ApplicationDbContext context, ICategoriaRepository categoriaRepository)
         {
             _context = context;
+            _categoriaRepository = categoriaRepository;
         }
 
         // GET: api/categorias
+        [HttpGet("repository")]
+        public async Task<ActionResult<IEnumerable<categoria>>> GetCategoriasRep()
+        {
+            // Use repository to get categorias
+            var categorias = await _categoriaRepository.GetCategorias();
+            return Ok(categorias);
+        }
+
+        // Alternative GET using EF Core directly: GET api/categorias/raw
         [HttpGet]
         public async Task<ActionResult<IEnumerable<categoria>>> GetCategorias()
         {
