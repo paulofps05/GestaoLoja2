@@ -1,6 +1,0 @@
-@RESTfulAPIPWeb_HostAddress = http://localhost:5212
-
-GET {{RESTfulAPIPWeb_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
