@@ -92,11 +92,9 @@ namespace RESTfulAPIPWeb.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(produto).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _produtoRepository.UpdateProdutosAsync(id, produto);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -118,9 +116,8 @@ namespace RESTfulAPIPWeb.Controllers
         [HttpPost]
         public async Task<ActionResult<produto>> Postproduto(produto produto)
         {
-            _context.Produtos.Add(produto);
-            await _context.SaveChangesAsync();
-
+            var result = await _produtoRepository.AdicionarProdutosAsync(produto);
+            
             return CreatedAtAction("Getproduto", new { id = produto.Id }, produto);
         }
 
@@ -128,15 +125,10 @@ namespace RESTfulAPIPWeb.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Deleteproduto(int id)
         {
-            var produto = await _context.Produtos.FindAsync(id);
-            if (produto == null)
-            {
+            var result = await _produtoRepository.DeleteProdutosAsync(id);
+
+            if (!result)
                 return NotFound();
-            }
-
-            _context.Produtos.Remove(produto);
-            await _context.SaveChangesAsync();
-
             return NoContent();
         }
 
@@ -144,5 +136,71 @@ namespace RESTfulAPIPWeb.Controllers
         {
             return _context.Produtos.Any(e => e.Id == id);
         }
+
+
+
+
+        //// PUT: api/produtos/5
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> Putproduto(int id, produto produto)
+        //{
+        //    if (id != produto.Id)
+        //    {
+        //        return BadRequest();
+        //    }
+
+        //    _context.Entry(produto).State = EntityState.Modified;
+
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!produtoExists(id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
+
+        //    return NoContent();
+        //}
+
+        //// POST: api/produtos
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPost]
+        //public async Task<ActionResult<produto>> Postproduto(produto produto)
+        //{
+        //    _context.Produtos.Add(produto);
+        //    await _context.SaveChangesAsync();
+
+        //    return CreatedAtAction("Getproduto", new { id = produto.Id }, produto);
+        //}
+
+        //// DELETE: api/produtos/5
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> Deleteproduto(int id)
+        //{
+        //    var produto = await _context.Produtos.FindAsync(id);
+        //    if (produto == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    _context.Produtos.Remove(produto);
+        //    await _context.SaveChangesAsync();
+
+        //    return NoContent();
+        //}
+
+        //private bool produtoExists(int id)
+        //{
+        //    return _context.Produtos.Any(e => e.Id == id);
+        //}
     }
 }
