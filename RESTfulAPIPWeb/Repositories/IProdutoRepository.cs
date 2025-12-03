@@ -13,6 +13,8 @@ namespace RESTfulAPIPWeb.Repositories
         Task<bool> UpdateProdutosAsync(int id, produto produto);
         Task<bool> DeleteProdutosAsync(int id);
 
+        Task<bool> ProdutoExisteAsync(int id);
+
 
     }
 }

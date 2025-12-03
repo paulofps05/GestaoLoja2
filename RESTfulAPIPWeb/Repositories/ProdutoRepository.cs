@@ -61,6 +61,7 @@ namespace RESTfulAPIPWeb.Repositories
 
         public async Task<produto> AdicionarProdutosAsync(produto produto)
         {
+            // O código original estava correto
             _dbContext.Produtos.Add(produto);
             await _dbContext.SaveChangesAsync();
             return produto;
@@ -68,8 +69,10 @@ namespace RESTfulAPIPWeb.Repositories
 
         public async Task<bool> UpdateProdutosAsync(int id, produto produto)
         {
-            var produtoT = await _dbContext.Produtos.FindAsync(id);
-            if (produtoT is null) return false;
+            // CORREÇÃO: Verificar existência sem fazer "Tracking" para evitar conflito de IDs
+            var existe = await _dbContext.Produtos.AsNoTracking().AnyAsync(x => x.Id == id);
+
+            if (!existe) return false;
 
             _dbContext.Produtos.Update(produto);
             await _dbContext.SaveChangesAsync();
@@ -78,11 +81,19 @@ namespace RESTfulAPIPWeb.Repositories
 
         public async Task<bool> DeleteProdutosAsync(int id)
         {
+            // O código original estava correto
             var produto = await _dbContext.Produtos.FindAsync(id);
             if (produto is null) return false;
+
             _dbContext.Produtos.Remove(produto);
             await _dbContext.SaveChangesAsync();
             return true;
+        }
+
+        // NOVO: Implementação da verificação
+        public async Task<bool> ProdutoExisteAsync(int id)
+        {
+            return await _dbContext.Produtos.AnyAsync(e => e.Id == id);
         }
     }
 }

@@ -83,7 +83,6 @@ namespace RESTfulAPIPWeb.Controllers
         //}
 
         // PUT: api/produtos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> Putproduto(int id, produto produto)
         {
@@ -94,11 +93,18 @@ namespace RESTfulAPIPWeb.Controllers
 
             try
             {
-                await _produtoRepository.UpdateProdutosAsync(id, produto);
+                // CORREÇÃO: Capturar o resultado booleano
+                var sucesso = await _produtoRepository.UpdateProdutosAsync(id, produto);
+
+                if (!sucesso)
+                {
+                    return NotFound();
+                }
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!produtoExists(id))
+                // Agora usamos o repositório para verificar
+                if (!await _produtoRepository.ProdutoExisteAsync(id))
                 {
                     return NotFound();
                 }
@@ -112,13 +118,13 @@ namespace RESTfulAPIPWeb.Controllers
         }
 
         // POST: api/produtos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<produto>> Postproduto(produto produto)
         {
             var result = await _produtoRepository.AdicionarProdutosAsync(produto);
-            
-            return CreatedAtAction("Getproduto", new { id = produto.Id }, produto);
+
+            // Certifique-se que "Getproduto" corresponde ao nome exato do método GET por ID
+            return CreatedAtAction(nameof(Getproduto), new { id = produto.Id }, produto);
         }
 
         // DELETE: api/produtos/5
@@ -129,12 +135,8 @@ namespace RESTfulAPIPWeb.Controllers
 
             if (!result)
                 return NotFound();
-            return NoContent();
-        }
 
-        private bool produtoExists(int id)
-        {
-            return _context.Produtos.Any(e => e.Id == id);
+            return NoContent();
         }
 
 
