@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Common;
 using RESTfulAPIPWeb.Data;
 using RESTfulAPIPWeb.Entities;
 using RESTfulAPIPWeb.Repositories;
@@ -16,9 +17,9 @@ namespace RESTfulAPIPWeb.Controllers
     public class produtosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly ProdutoRepository _produtoRepository;
+        private readonly IProdutoRepository _produtoRepository;
 
-        public produtosController(ApplicationDbContext context, ProdutoRepository produtoRepository)
+        public produtosController(ApplicationDbContext context, IProdutoRepository produtoRepository)
         {
             _context = context;
             _produtoRepository = produtoRepository;
