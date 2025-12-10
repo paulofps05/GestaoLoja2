@@ -1,8 +1,10 @@
 ﻿@page "/categoria/create"
 @using Microsoft.EntityFrameworkCore
 @using GestaoLoja2.Entitles
-@inject IDbContextFactory<GestaoLoja2.Data.ApplicationDbContext> DbFactory
+@using GestaoLoja2.Services
 @inject NavigationManager NavigationManager
+@inject CategoriaService categoriaService
+
 
 @using Microsoft.AspNetCore.Authorization
 
@@ -46,6 +48,9 @@
             </div>
             <button type="submit" class="btn btn-primary">Create</button>
         </EditForm>
+        <div class="alert alert-info">
+            @apiMessage
+        </div>
     </div>
 </div>
 
@@ -56,14 +61,20 @@
 @code {
     [SupplyParameterFromForm]
     private categoria categoria { get; set; } = new();
+    private string apiMessage = string.Empty;
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task Addcategoria()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Categorias.Add(categoria);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/categoria");
+        var result = await categoriaService.CreateCategoria(categoria);
+        if(result == null)
+        {
+            apiMessage = "Erro ao criar a categoria via API.";
+        }
+        else
+        {
+            apiMessage = "Categoria criada com sucesso via API.";
+        }
     }
 
     private string? previewUrl;

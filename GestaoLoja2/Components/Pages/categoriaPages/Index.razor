@@ -5,8 +5,9 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using GestaoLoja2.Entitles
 @using GestaoLoja2.Data
+@using GestaoLoja2.Services
 @implements IAsyncDisposable
-@inject IDbContextFactory<GestaoLoja2.Data.ApplicationDbContext> DbFactory
+@inject CategoriaService categoriaService
 
 @using Microsoft.AspNetCore.Authorization
 
@@ -25,7 +26,7 @@
 </AuthorizeView>
 
 
-<QuickGrid Class="table" Items="context.Categorias">
+<QuickGrid Class="table" Items="categorias.AsQueryable()">
     @* <PropertyColumn Property="categoria => categoria.UrlImagem" /> *@
 	@*<PropertyColumn Property="categoria => categoria.Imagem" />*@
 
@@ -49,13 +50,16 @@
     </TemplateColumn>
 </QuickGrid>
 
-@code {
-    private ApplicationDbContext context = default!;
 
-    protected override void OnInitialized()
+
+@code {
+
+    IEnumerable<categoria> categorias = Enumerable.Empty<categoria>();
+
+    protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
+        categorias = await categoriaService.GetCategorias();
     }
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    public async ValueTask DisposeAsync() => categorias = Enumerable.Empty<categoria>();
 }
