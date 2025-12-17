@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 
 namespace GestaoLoja2.Entitles;
@@ -15,7 +16,9 @@ namespace GestaoLoja2.Entitles;
     public string? UrlImagem { get; set; }
     public byte[]? Imagem { get; set; }
 
+
     [NotMapped]
+    [JsonIgnore]
     public IFormFile? ImagemFile { get; set; }
 
 }

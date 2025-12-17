@@ -3,12 +3,14 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
+@using GestaoLoja2.Services
 @using GestaoLoja2.Data
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject AutenticacaoService AutenticacaoService;
 
 <PageTitle>Log in</PageTitle>
 
@@ -87,28 +89,26 @@
 
     public async Task LoginUser()
     {
-        // This doesn't count login failures towards account lockout
-        // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-        if (result.Succeeded)
+        errorMessage = null;
+
+        try
         {
-            Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+            var result = await AutenticacaoService.Login(Input.Email, Input.Password);
+
+            if (result.Success)
+            {
+                errorMessage = "Login efectuado com sucesso";
+                errorMessage += "-> Vou querer fazer alguma coisa :)";
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
         }
-        else if (result.RequiresTwoFactor)
+        catch (Exception ex)
         {
-            RedirectManager.RedirectTo(
-                "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
-        }
-        else if (result.IsLockedOut)
-        {
-            Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
-        }
-        else
-        {
-            errorMessage = "Error: Invalid login attempt.";
+            Logger.LogError(ex, "Error during login.");
+            errorMessage = "Error: Unable to process login at this time.";
         }
     }
 

@@ -84,7 +84,7 @@ namespace RESTfulAPIPWeb.Controllers
 
         // PUT: api/produtos/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Putproduto(int id, produto produto)
+        public async Task<IActionResult> Putproduto(int id, [FromBody] produto produto)
         {
             if (id != produto.Id)
             {
@@ -119,7 +119,7 @@ namespace RESTfulAPIPWeb.Controllers
 
         // POST: api/produtos
         [HttpPost]
-        public async Task<ActionResult<produto>> Postproduto(produto produto)
+        public async Task<ActionResult<produto>> Postproduto([FromBody] produto produto)
         {
             var result = await _produtoRepository.AdicionarProdutosAsync(produto);
 

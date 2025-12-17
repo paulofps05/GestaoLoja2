@@ -58,7 +58,7 @@ namespace RESTfulAPIPWeb.Controllers
         // PUT: api/categorias/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> Putcategoria(int id, categoria categoria)
+        public async Task<IActionResult> Putcategoria(int id, [FromBody] categoria categoria)
         {
             if (id != categoria.Id)
             {
@@ -89,7 +89,7 @@ namespace RESTfulAPIPWeb.Controllers
         // POST: api/categorias
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<categoria>> Postcategoria(categoria categoria)
+        public async Task<ActionResult<categoria>> Postcategoria([FromBody] categoria categoria)
         {
             _context.Categorias.Add(categoria);
             await _context.SaveChangesAsync();

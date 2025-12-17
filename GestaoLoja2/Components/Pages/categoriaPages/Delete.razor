@@ -1,7 +1,7 @@
 ﻿@page "/categoria/delete"
-@using Microsoft.EntityFrameworkCore
 @using GestaoLoja2.Entitles
-@inject IDbContextFactory<GestaoLoja2.Data.ApplicationDbContext> DbFactory
+@using GestaoLoja2.Services
+@inject CategoriaService categoriaService
 @inject NavigationManager NavigationManager
 
 @using Microsoft.AspNetCore.Authorization
@@ -52,8 +52,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        categoria = await context.Categorias.FirstOrDefaultAsync(m => m.Id == Id);
+        categoria = await categoriaService.GetCategoriaById(Id);
 
         if (categoria is null)
         {
@@ -63,9 +62,7 @@
 
     private async Task Deletecategoria()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Categorias.Remove(categoria!);
-        await context.SaveChangesAsync();
+        await categoriaService.DeleteCategoria(Id);
         NavigationManager.NavigateTo("/categoria");
     }
 }

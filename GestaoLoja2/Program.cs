@@ -39,12 +39,16 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+builder.Services.AddScoped<TokenStorageService>();
+builder.Services.AddTransient<JwtAuthenticationHandler>();
+
 builder.Services.AddHttpClient("api", client =>
 {
     client.BaseAddress = new Uri("https://localhost:7033");
-});
+}).AddHttpMessageHandler<JwtAuthenticationHandler>();
 
 builder.Services.AddScoped<CategoriaService>();
+builder.Services.AddScoped<AutenticacaoService>();
  
 var app = builder.Build();
 
