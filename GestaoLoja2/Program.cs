@@ -1,4 +1,5 @@
-﻿using GestaoLoja2.Components;
+﻿using Blazored.LocalStorage;
+using GestaoLoja2.Components;
 using GestaoLoja2.Components.Account;
 using GestaoLoja2.Data;
 using GestaoLoja2.Services;
@@ -12,10 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddBlazoredLocalStorage();
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 builder.Services.AddAuthentication(options =>
     {
@@ -39,13 +42,15 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-builder.Services.AddScoped<TokenStorageService>();
+builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
 builder.Services.AddTransient<JwtAuthenticationHandler>();
 
-builder.Services.AddHttpClient("api", client =>
+// Configura o ApiService para usar o JwtAuthenticationHandler
+builder.Services.AddHttpClient<IApiServices, ApiService>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7033");
-}).AddHttpMessageHandler<JwtAuthenticationHandler>();
+})
+.AddHttpMessageHandler<JwtAuthenticationHandler>();
 
 builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<AutenticacaoService>();

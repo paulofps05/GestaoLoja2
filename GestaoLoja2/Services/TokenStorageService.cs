@@ -1,35 +1,60 @@
-﻿namespace GestaoLoja2.Services
+using Blazored.LocalStorage;
+using GestaoLoja2.DTO;
+using Microsoft.JSInterop;
+
+namespace GestaoLoja2.Services;
+
+public class TokenStorageService : ITokenStorageService
 {
-    public class TokenStorageService
+    private readonly ILocalStorageService _localStorage;
+    private const string TokenKey = "authToken";
+
+    public TokenStorageService(ILocalStorageService localStorage)
     {
-        private string? _token;
-        private DateTime? _expirationTime;
+        _localStorage = localStorage;
+    }
 
-        public void SetToken(string token, int expiresIn)
+    public async Task<Token?> GetToken()
+    {
+        try 
         {
-            _token = token;
-            _expirationTime = DateTime.UtcNow.AddSeconds(expiresIn);
+            return await _localStorage.GetItemAsync<Token>(TokenKey);
         }
-
-        public string? GetToken()
+        catch (Exception)
         {
-            if(_token != null && _expirationTime.HasValue && DateTime.UtcNow < _expirationTime)
-            {
-                return _token;
-            }
-            ClearToken();
+            // Ignorar erros durante o prerendering (ex: JS Interop não disponível)
             return null;
         }
+    }
 
-        public bool IsTokenValid()
+    public async Task Login(Token token)
+    {
+        try
         {
-            return GetToken() != null;
+            await _localStorage.SetItemAsync(TokenKey, token);
         }
+        catch (Exception)
+        {
+            // Ignorar erros se tentado chamar durante o prerendering.
+            // Nota: Num cenário real de login interativo, isto não deve acontecer se o botão estiver num componente InteractiveServer.
+        }
+    }
 
-        public void ClearToken()
+    public async Task Logout()
+    {
+        try
         {
-            _token = null;
-            _expirationTime = null;
+            await _localStorage.RemoveItemAsync(TokenKey);
         }
+        catch (Exception)
+        {
+            // Ignorar erros
+        }
+    }
+
+    public async Task<bool> IsUserLoggedIn()
+    {
+        var token = await GetToken();
+        return token != null && !string.IsNullOrEmpty(token.AccessToken);
     }
 }

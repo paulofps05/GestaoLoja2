@@ -1,12 +1,12 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 
 namespace GestaoLoja2.Services
 {
     public class JwtAuthenticationHandler : DelegatingHandler
     {
-        private readonly TokenStorageService _tokenStorage;
+        private readonly ITokenStorageService _tokenStorage;
 
-        public JwtAuthenticationHandler(TokenStorageService tokenStorage)
+        public JwtAuthenticationHandler(ITokenStorageService tokenStorage)
         {
             _tokenStorage = tokenStorage;
         }
@@ -15,14 +15,15 @@ namespace GestaoLoja2.Services
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            var token = _tokenStorage.GetToken();
-            if (!string.IsNullOrEmpty(token))
+            // O GetToken agora é assíncrono e retorna um objeto Token
+            var token = await _tokenStorage.GetToken();
+            
+            if (token != null && !string.IsNullOrEmpty(token.AccessToken))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             }
+
             return await base.SendAsync(request, cancellationToken);
         }
-
-
     }
 }
